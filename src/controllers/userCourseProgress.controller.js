@@ -90,3 +90,35 @@ export const updateLectureProgress = asyncHandler(async (req, res, next) => {
     return next(new AppError(error.message, 500));
   }
 });
+
+export const activeCourses = async ({ courseId, userId }) => {
+  try {
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return {
+        message: 'Khóa học không tồn tại',
+        code: 404,
+      };
+    }
+
+    const lecturesProgress = course.lectures.map((lecture, index) => ({
+      lectureId: lecture._id,
+      completed: false,
+      locked: index !== 0,
+    }));
+
+    const progress = await UserCourseProgress.create({
+      userId,
+      courseId,
+      lecturesProgress,
+    });
+
+    await progress.save();
+  } catch (error) {
+    return {
+      message: error?.message,
+      code: 500,
+    };
+  }
+};

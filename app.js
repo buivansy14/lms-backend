@@ -9,6 +9,8 @@ import courseRoutes from './src/routes/course.Routes.js';
 import miscRoutes from './src/routes/miscellanous.routes.js';
 import paymentRoutes from './src/routes/payment.routes.js';
 import userRoutes from './src/routes/user.Routes.js';
+import transactionRoutes from './src/routes/transaction.routes.js';
+import orderRoutes from './src/routes/order.routes.js';
 import userCourseProgressRoutes from './src/routes/userCourseProgress.route.js';
 
 config();
@@ -40,6 +42,8 @@ app.use('/ping', function (_req, res) {
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/course', courseRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/transaction', transactionRoutes);
+app.use('/api/v1/order', orderRoutes);
 app.use('/api/v1/userProgress', userCourseProgressRoutes);
 app.use('/api/v1', miscRoutes);
 app.all('*', (_req, res) => {

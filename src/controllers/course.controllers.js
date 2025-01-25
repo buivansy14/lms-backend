@@ -233,6 +233,16 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
       });
     }
 
+    const lectureProgress = progress.lecturesProgress.find(
+      (lec) => lec.lectureId.toString() === lectureId
+    );
+    if (lectureProgress?.locked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không được phép truy cập bài giảng này.',
+      });
+    }
+
     const courseContent = course.lectures.map((lec, index) => {
       return {
         title: lec.title,
