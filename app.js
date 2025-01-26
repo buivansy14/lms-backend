@@ -3,11 +3,9 @@ import cors from 'cors';
 import { config } from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
-
 import errorMiddlware from './src/middlewares/error.middleware.js';
 import courseRoutes from './src/routes/course.Routes.js';
 import miscRoutes from './src/routes/miscellanous.routes.js';
-import paymentRoutes from './src/routes/payment.routes.js';
 import userRoutes from './src/routes/user.Routes.js';
 import transactionRoutes from './src/routes/transaction.routes.js';
 import orderRoutes from './src/routes/order.routes.js';
@@ -41,7 +39,6 @@ app.use('/ping', function (_req, res) {
 
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/course', courseRoutes);
-app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/order', orderRoutes);
 app.use('/api/v1/userProgress', userCourseProgressRoutes);
