@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'LMS API',
+      name: 'LMS-API',
       script: './app.js',
     },
   ],
