@@ -14,9 +14,6 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: process.env.CLOUDINARY_SECURE,
 });
-/**
- * @Razorpay configuration for payment gateway
- */
 
 app.listen(PORT, async () => {
   await connectionToDB();
