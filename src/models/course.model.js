@@ -47,6 +47,10 @@ const courseSchema = new Schema(
       {
         title: String,
         description: String,
+        orderDisplay: {
+          type: Number,
+          default: 1,
+        },
         lecture: {
           duration: Number,
           public_id: {

@@ -243,15 +243,18 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
       });
     }
 
-    const courseContent = course.lectures.map((lec, index) => {
-      return {
-        title: lec.title,
-        completed: progress.lecturesProgress[index].completed,
-        locked: progress.lecturesProgress[index].locked,
-        id: lec._id,
-        duration: lec.lecture.duration,
-      };
-    });
+    const courseContent = course.lectures
+      .map((lec, index) => {
+        return {
+          title: lec.title,
+          completed: progress.lecturesProgress[index].completed,
+          locked: progress.lecturesProgress[index].locked,
+          id: lec._id,
+          duration: lec.lecture.duration,
+          orderDisplay: lec.orderDisplay,
+        };
+      })
+      .sort((a, b) => a.orderDisplay - b.orderDisplay);
     const completedLectures = progress.lecturesProgress.filter(
       (lec) => lec.completed
     ).length;
@@ -665,5 +668,55 @@ export const getInfoLectures = asyncHandler(async (req, res, next) => {
     res.status(200).json(course);
   } catch (error) {
     return next(new AppError('Error get info course: ' + error.message, 500));
+  }
+});
+
+export const getCourseInfo = asyncHandler(async (req, res, next) => {
+  try {
+    const courseId = req.params.courseId;
+    const course = await Course.findById(courseId, 'lectures title');
+
+    if (!course) {
+      res.status(404).json({ message: 'Course not found' });
+      return;
+    }
+
+    res.status(200).json(course);
+  } catch (error) {
+    return next(new AppError('Error get info course: ' + error.message, 500));
+  }
+});
+
+export const updateLesson = asyncHandler(async (req, res, next) => {
+  const { courseId, lectureId } = req.params;
+  const { title, description, orderDisplay } = req.body;
+  console.log(req.body);
+  try {
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: 'Khóa học không tồn tại' });
+    }
+    const lessonIndex = course.lectures.findIndex(
+      (lesson) => lesson._id.toString() === lectureId
+    );
+
+    if (lessonIndex === -1) {
+      return res.status(404).json({ message: 'Bài học không tồn tại' });
+    }
+
+    course.lectures[lessonIndex].title =
+      title || course.lectures[lessonIndex].title;
+    course.lectures[lessonIndex].description =
+      description || course.lectures[lessonIndex].description;
+    course.lectures[lessonIndex].orderDisplay =
+      orderDisplay || course.lectures[lessonIndex].orderDisplay;
+
+    await course.save();
+
+    return res.status(200).json({ message: 'Cập nhật bài học thành công' });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: 'Lỗi server', error: error.message });
   }
 });
