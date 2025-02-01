@@ -12,6 +12,11 @@ import orderRoutes from './src/routes/order.routes.js';
 import userCourseProgressRoutes from './src/routes/userCourseProgress.route.js';
 import paymentRoutes from './src/routes/payment.routes.js';
 
+const allowedOrigins = [
+  'https://hoclaptrinh.tokyo',
+  'https://www.hoclaptrinh.tokyo',
+];
+
 config();
 
 const app = express();
@@ -22,13 +27,25 @@ app.use(express.urlencoded({ limit: '99mb', extended: true }));
 
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,
     credentials: true,
   })
 );
+
+app.use((req, res, next) => {
+  if (req.protocol === 'http') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
 
 app.use(cookieParser());
 
