@@ -11,6 +11,7 @@ import {
   getAllCourseUser,
   getCoursesWithUsers,
   getSecureVideo,
+  getInfoLectures,
 } from '../controllers/course.controllers.js';
 import {
   authorizedRoles,
@@ -71,5 +72,6 @@ router
   .get(isLoggedIn, authorizedRoles('ADMIN'), getCoursesWithUsers);
 
 router.route('/getSecureVideo/lms/:videoId').get(isLoggedIn, getSecureVideo);
+router.route('/getInfoLectures/:courseId').get(getInfoLectures);
 
 export default router;

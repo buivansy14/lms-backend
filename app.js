@@ -10,6 +10,7 @@ import userRoutes from './src/routes/user.Routes.js';
 import transactionRoutes from './src/routes/transaction.routes.js';
 import orderRoutes from './src/routes/order.routes.js';
 import userCourseProgressRoutes from './src/routes/userCourseProgress.route.js';
+import paymentRoutes from './src/routes/payment.routes.js';
 
 config();
 
@@ -42,6 +43,7 @@ app.use('/api/v1/course', courseRoutes);
 app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/order', orderRoutes);
 app.use('/api/v1/userProgress', userCourseProgressRoutes);
+app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1', miscRoutes);
 app.all('*', (_req, res) => {
   res.status(404).send('OOPS!!  404 page not found ');

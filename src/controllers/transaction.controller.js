@@ -5,13 +5,21 @@ import Transaction from '../models/transaction.model.js';
 import axios from 'axios';
 import Order from '../models/order.model.js';
 import { activeCourses } from './userCourseProgress.controller.js';
+import Course from '../models/course.model.js';
+import AppError from '../../utils/error.util.js';
 
 export const createQR = asyncHandler(async (req, res, next) => {
-  const { amount, message } = req.body;
+  const { message, courseId } = req.body;
 
   const transactionId = uuidv4().slice(0, 8);
 
   try {
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return next(new AppError('Course with given id does not exist', 500));
+    }
+    const amount = course?.price;
     const transaction = new Transaction({
       transactionId,
       amount,
@@ -26,6 +34,7 @@ export const createQR = asyncHandler(async (req, res, next) => {
       success: true,
       qrUrl: qr,
       transactionId,
+      amount,
     });
   } catch (error) {
     return next(new AppError(error.message, 500));

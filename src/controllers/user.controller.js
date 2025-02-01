@@ -96,7 +96,7 @@ export const login = asyncHandler(async (req, res, next) => {
     }).select('+password');
 
     if (!(user && (await user.comparePassword(password)))) {
-      return next(new AppError('Email or password does not match ', 400));
+      return next(new AppError('Email hoặc mật khẩu không khớp', 400));
     }
 
     const token = await user.generateJWTToken();

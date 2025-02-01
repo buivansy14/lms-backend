@@ -648,3 +648,22 @@ export const getSecureVideo = asyncHandler(async (req, res, next) => {
     );
   }
 });
+
+export const getInfoLectures = asyncHandler(async (req, res, next) => {
+  try {
+    const courseId = req.params.courseId;
+    const course = await Course.findById(
+      courseId,
+      'lectures.title lectures.description price oldPrice'
+    );
+
+    if (!course) {
+      res.status(404).json({ message: 'Course not found' });
+      return;
+    }
+
+    res.status(200).json(course);
+  } catch (error) {
+    return next(new AppError('Error get info course: ' + error.message, 500));
+  }
+});
