@@ -40,13 +40,6 @@ app.use(
   })
 );
 
-app.use((req, res, next) => {
-  if (req.protocol === 'http') {
-    return res.redirect(301, `https://${req.headers.host}${req.url}`);
-  }
-  next();
-});
-
 app.use(cookieParser());
 
 app.use(morgan('dev'));
