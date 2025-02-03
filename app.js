@@ -21,9 +21,9 @@ config();
 
 const app = express();
 
-app.use(express.json({ limit: '99mb' }));
+app.use(express.json({ limit: '120mb' }));
 
-app.use(express.urlencoded({ limit: '99mb', extended: true }));
+app.use(express.urlencoded({ limit: '120mb', extended: true }));
 
 app.use(
   cors({

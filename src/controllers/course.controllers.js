@@ -105,7 +105,18 @@ export const getAllCourseUser = asyncHandler(async (req, res, next) => {
           description: 1,
           category: 1,
           thumbnail: 1,
-          lectures: { $slice: ['$lectures', 1] },
+          lectures: {
+            $filter: {
+              input: '$lectures',
+              as: 'lecture',
+              cond: {
+                $eq: [
+                  '$$lecture.orderDisplay',
+                  { $min: '$lectures.orderDisplay' },
+                ],
+              },
+            },
+          },
           numberOfLectures: 1,
           oldPrice: 1,
           price: 1,
@@ -244,17 +255,22 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
     }
 
     const courseContent = course.lectures
+      .sort((a, b) => a.orderDisplay - b.orderDisplay) // Sắp xếp lectures theo orderDisplay
       .map((lec, index) => {
+        const lectureProgress = progress.lecturesProgress.find(
+          (item) => item.lectureId.toString() === lec._id.toString()
+        );
+
         return {
           title: lec.title,
-          completed: progress.lecturesProgress[index].completed,
-          locked: progress.lecturesProgress[index].locked,
+          completed: lectureProgress ? lectureProgress.completed : false,
+          locked: lectureProgress ? lectureProgress.locked : false,
           id: lec._id,
           duration: lec.lecture.duration,
           orderDisplay: lec.orderDisplay,
         };
-      })
-      .sort((a, b) => a.orderDisplay - b.orderDisplay);
+      });
+
     const completedLectures = progress.lecturesProgress.filter(
       (lec) => lec.completed
     ).length;
@@ -408,6 +424,7 @@ export const addLectureToCourseById = asyncHandler(async (req, res, next) => {
       const result = await cloudinary.v2.uploader.upload(req.file.path, {
         folder: 'lms',
         resource_type: 'video',
+        chunk_size: 100000,
       });
 
       if (result) {
@@ -512,7 +529,7 @@ const syncLectureWithProgress = async (courseId, lectureId) => {
         progress.lecturesProgress.push({
           lectureId,
           completed: false,
-          locked: true,
+          locked: false,
         });
         await progress.save();
       }
@@ -657,7 +674,7 @@ export const getInfoLectures = asyncHandler(async (req, res, next) => {
     const courseId = req.params.courseId;
     const course = await Course.findById(
       courseId,
-      'lectures.title lectures.description price oldPrice'
+      'lectures.title lectures.description lectures.orderDisplay price oldPrice'
     );
 
     if (!course) {

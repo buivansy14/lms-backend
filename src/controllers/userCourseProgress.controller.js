@@ -13,11 +13,13 @@ export const createProgress = asyncHandler(async (req, res, next) => {
       return next(new AppError('Course not found', 404));
     }
 
-    const lecturesProgress = course.lectures.map((lecture, index) => ({
-      lectureId: lecture._id,
-      completed: false,
-      locked: index !== 0,
-    }));
+    const lecturesProgress = course.lectures
+      .sort((a, b) => a.orderDisplay - b.orderDisplay)
+      .map((lecture) => ({
+        lectureId: lecture._id,
+        completed: false,
+        locked: false,
+      }));
 
     const progress = await UserCourseProgress.create({
       userId,
@@ -78,6 +80,7 @@ export const updateLectureProgress = asyncHandler(async (req, res, next) => {
         lectureProgressPreIndex
       ].completed = true;
     }
+    console.log({ userCourseProgress });
 
     await userCourseProgress.save();
 
@@ -102,11 +105,13 @@ export const activeCourses = async ({ courseId, userId }) => {
       };
     }
 
-    const lecturesProgress = course.lectures.map((lecture, index) => ({
-      lectureId: lecture._id,
-      completed: false,
-      locked: index !== 0,
-    }));
+    const lecturesProgress = course.lectures
+      .sort((a, b) => a.orderDisplay - b.orderDisplay)
+      .map((lecture) => ({
+        lectureId: lecture._id,
+        completed: false,
+        locked: false,
+      }));
 
     const progress = await UserCourseProgress.create({
       userId,
