@@ -18,3 +18,28 @@ export const getOrderById = asyncHandler(async (req, res, next) => {
     return next(new AppError(error.message, 500));
   }
 });
+
+export const getAllOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find()
+      .populate({
+        path: 'userId',
+        select: 'fullName email',
+      })
+      .sort({ transaction_date: -1 });
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không có đơn hàng nào.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 500));
+  }
+};

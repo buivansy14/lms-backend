@@ -10,6 +10,7 @@ import {
   changePassword,
   updateUser,
   getAllUser,
+  lockUser,
 } from '../controllers/user.controller.js';
 import {
   authorizedRoles,
@@ -69,5 +70,6 @@ router.post('/change-password', isLoggedIn, changePassword);
  */
 router.put('/update', isLoggedIn, upload.single('avatar'), updateUser);
 router.get('/getAll', isLoggedIn, authorizedRoles('ADMIN'), getAllUser);
+router.post('/lock-user', isLoggedIn, authorizedRoles('ADMIN'), lockUser);
 
 export default router;

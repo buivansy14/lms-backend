@@ -99,6 +99,15 @@ export const login = asyncHandler(async (req, res, next) => {
       return next(new AppError('Email hoặc mật khẩu không khớp', 400));
     }
 
+    if (user.locked) {
+      return next(
+        new AppError(
+          'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên.',
+          400
+        )
+      );
+    }
+
     const token = await user.generateJWTToken();
     user.password = undefined;
 
@@ -164,7 +173,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 
   await user.save();
 
-  const resetPasswordUrl = `${process.env.FRONTEND_URL}reset-password/${resetToken}`;
+  const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
   const subject = 'Reset Password';
   const message = `You can reset your password by clicking <a href=${resetPasswordUrl} target="_blank">Reset your password</a>\nIf the above link does not work for some reason then copy paste this link in new tab ${resetPasswordUrl}.\n If you have not requested this, kindly ignore.`;
@@ -310,5 +319,27 @@ export const getAllUser = asyncHandler(async (req, res, next) => {
     });
   } catch (error) {
     return next(new AppError(e.message, 500));
+  }
+});
+
+export const lockUser = asyncHandler(async (req, res, next) => {
+  try {
+    const { userId, locked } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return next(new AppError('User not found', 404));
+    }
+
+    user.locked = !locked;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Khóa tài khoản thành công',
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 500));
   }
 });
