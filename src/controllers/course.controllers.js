@@ -281,6 +281,8 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
       title: lecture.title,
       description: lecture.description,
       videoId: lecture.lecture.public_id,
+      uploadType: lecture.lecture?.uploadType,
+      videoUrl: lecture.lecture?.original_path,
       thumbnailUrl: lecture.lecture?.thumbnail_url,
       courseContent,
       completedLectures,
@@ -400,18 +402,18 @@ export const removeCourse = asyncHandler(async (req, res, next) => {
  * Adds a lecture to a course and uploads video to Cloudinary.
  */
 export const addLectureToCourseById = asyncHandler(async (req, res, next) => {
-  const { title, description } = req.body;
+  const { title, description, videoSrc, uploadType, duration } = req.body;
 
   const { id } = req.params;
 
   if (!title || !description) {
-    return next(new AppError('All fields are required ', 400));
+    return next(new AppError('All fields are required', 400));
   }
 
   const course = await Course.findById(id);
 
   if (!course) {
-    return next(new AppError('course are not exist', 500));
+    return next(new AppError('Course does not exist', 404));
   }
 
   const lectureData = {
@@ -419,7 +421,15 @@ export const addLectureToCourseById = asyncHandler(async (req, res, next) => {
     description,
     lecture: {},
   };
-  if (req.file) {
+
+  if (videoSrc) {
+    // Trường hợp người dùng nhập link video
+    lectureData.lecture.public_id = null;
+    lectureData.lecture.duration = duration;
+    lectureData.lecture.original_path = videoSrc;
+    lectureData.lecture.thumbnail_url = course?.thumbnail?.secure_url;
+  } else if (req.file) {
+    // Trường hợp người dùng tải lên video
     try {
       const result = await cloudinary.v2.uploader.upload(req.file.path, {
         folder: 'lms',
@@ -443,27 +453,32 @@ export const addLectureToCourseById = asyncHandler(async (req, res, next) => {
 
         lectureData.lecture.thumbnail_url = thumbnailUrl;
       }
+
       fs.rm(`uploads/${req.file.filename}`);
     } catch (error) {
       return next(new AppError(error.message, 500));
     }
-    course.lectures.push(lectureData);
-
-    course.numberOfLectures = course.lectures.length;
-
-    await course.save();
-
-    const addedLecture = course.lectures[course.lectures.length - 1];
-
-    await syncLectureWithProgress(id, addedLecture._id);
-
-    res.status(200).json({
-      success: true,
-      message: 'Lecture created and synced successfully!',
-      course,
-    });
+  } else {
+    return next(
+      new AppError('Either video file or video link is required', 400)
+    );
   }
+
+  lectureData.lecture.uploadType = uploadType;
+  course.lectures.push(lectureData);
+  course.numberOfLectures = course.lectures.length;
+  await course.save();
+
+  const addedLecture = course.lectures[course.lectures.length - 1];
+  await syncLectureWithProgress(id, addedLecture._id);
+
+  res.status(200).json({
+    success: true,
+    message: 'Lecture created and synced successfully!',
+    course,
+  });
 });
+
 /**
  * @REMOVE_LECTURE
  * Removes a lecture from a course by its ID and deletes the video from Cloudinary.
@@ -652,8 +667,8 @@ export const getSecureVideo = asyncHandler(async (req, res, next) => {
   try {
     const signedUrl = cloudinary.v2.url(`lms/${videoId}`, {
       resource_type: 'video',
-      format: 'm3u8',
       sign_url: true,
+      format: 'm3u8',
       secure: true,
     });
 
