@@ -721,8 +721,7 @@ export const getCourseInfo = asyncHandler(async (req, res, next) => {
 
 export const updateLesson = asyncHandler(async (req, res, next) => {
   const { courseId, lectureId } = req.params;
-  const { title, description, orderDisplay } = req.body;
-  console.log(req.body);
+  const { title, description, orderDisplay, linkVideo, duration } = req.body;
   try {
     const course = await Course.findById(courseId);
     if (!course) {
@@ -742,6 +741,10 @@ export const updateLesson = asyncHandler(async (req, res, next) => {
       description || course.lectures[lessonIndex].description;
     course.lectures[lessonIndex].orderDisplay =
       orderDisplay || course.lectures[lessonIndex].orderDisplay;
+    course.lectures[lessonIndex].lecture.original_path =
+      linkVideo || course.lectures[lessonIndex].lecture.original_path;
+    course.lectures[lessonIndex].lecture.duration =
+      duration || course.lectures[lessonIndex].lecture.duration;
 
     await course.save();
 
