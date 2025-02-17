@@ -1,5 +1,6 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import path from 'path';
 import { config } from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
@@ -13,8 +14,9 @@ import userCourseProgressRoutes from './src/routes/userCourseProgress.route.js';
 import paymentRoutes from './src/routes/payment.routes.js';
 
 const allowedOrigins = [
-  'https://hoclaptrinh.tokyo',
-  'https://www.hoclaptrinh.tokyo',
+  'https://techonline.edu.vn',
+  'https://www.techonline.edu.vn',
+  // 'http://localhost:5173',
 ];
 
 config();
