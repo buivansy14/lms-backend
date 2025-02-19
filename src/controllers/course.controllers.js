@@ -745,7 +745,7 @@ export const updateLesson = asyncHandler(async (req, res, next) => {
       linkVideo || course.lectures[lessonIndex].lecture.original_path;
     course.lectures[lessonIndex].lecture.duration =
       duration || course.lectures[lessonIndex].lecture.duration;
-
+    course.lectures[lessonIndex].lecture.uploadType = 'link';
     await course.save();
 
     return res.status(200).json({ message: 'Cập nhật bài học thành công' });
