@@ -60,6 +60,28 @@ export const deleteTransaction = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const checkTransaction = asyncHandler(async (req, res, next) => {
+  const { transactionId } = req.body;
+
+  try {
+    const transaction = await Transaction.findOne({ transactionId });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Transaction found',
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 500));
+  }
+});
+
 export const getPaymentStatus = asyncHandler(async (req, res, next) => {
   const { transactionId, courseId } = req.query;
   const { id } = req.user;
@@ -95,6 +117,7 @@ const checkPaymentStatus = async (transactionId, userId, courseId) => {
     );
 
     const transactions = response.data.transactions;
+
     const matchingTransaction = transactions.find((transaction) =>
       transaction.transaction_content.includes(transactionId)
     );

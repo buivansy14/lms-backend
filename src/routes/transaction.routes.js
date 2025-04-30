@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { isLoggedIn } from '../middlewares/auth.middlewares.js';
 import {
+  checkTransaction,
   createQR,
   deleteTransaction,
   getPaymentStatus,
@@ -10,6 +11,7 @@ const router = Router();
 
 router.route('/create-qr').post(isLoggedIn, createQR);
 router.route('/delete-transaction').post(isLoggedIn, deleteTransaction);
+router.route('/check-transaction').post(isLoggedIn, checkTransaction);
 router.route('/get-payment-status').get(isLoggedIn, getPaymentStatus);
 
 export default router;
