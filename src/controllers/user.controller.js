@@ -267,7 +267,6 @@ export const changePassword = asyncHandler(async (req, res, next) => {
 export const updateUser = asyncHandler(async (req, res, next) => {
   const { fullName } = req.body;
   const { id } = req.user;
-  console.log(id);
 
   const user = await User.findById(id);
 

@@ -204,7 +204,6 @@ export const getAllCourseUser = asyncHandler(async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.log(error.message);
     return next(new AppError(error.message, 500));
   }
 });
@@ -549,10 +548,6 @@ const syncLectureWithProgress = async (courseId, lectureId) => {
         await progress.save();
       }
     }
-
-    console.log(
-      `Lecture ${lectureId} synced successfully for course ${courseId}`
-    );
   } catch (error) {
     console.error('Error syncing lecture with user progress:', error.message);
     throw new Error('Failed to sync lecture with user progress');
@@ -653,8 +648,6 @@ export const getCoursesWithUsers = asyncHandler(async (req, res, next) => {
 
 export const getSecureVideo = asyncHandler(async (req, res, next) => {
   const { videoId } = req.params;
-
-  console.log(`lms/${videoId}`);
 
   const video = await Course.findOne({
     'lectures.lecture.public_id': `lms/${videoId}`,

@@ -6,7 +6,6 @@ class AppError extends Error {
     super(message);
 
     this.statusCode = statusCode;
-    console.log({ message });
     Error.captureStackTrace(this, this.constructor);
   }
 }

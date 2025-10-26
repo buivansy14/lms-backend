@@ -4,7 +4,6 @@ import Order from '../models/order.model.js';
 
 export const getOrderById = asyncHandler(async (req, res, next) => {
   const { id } = req.query;
-  console.log({ id });
   try {
     const order = await Order.findById(id);
     if (!order) {

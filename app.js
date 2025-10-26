@@ -12,6 +12,10 @@ import transactionRoutes from './src/routes/transaction.routes.js';
 import orderRoutes from './src/routes/order.routes.js';
 import userCourseProgressRoutes from './src/routes/userCourseProgress.route.js';
 import paymentRoutes from './src/routes/payment.routes.js';
+import translationRoutes from './src/routes/translation.routes.js';
+import marketplaceRoutes from './src/routes/marketplace.routes.js';
+import categoriesRoutes from './src/routes/category.routes.js';
+import settingRoutes from './src/routes/setting.routes.js';
 
 const allowedOrigins = [
   'https://techonline.edu.vn',
@@ -56,6 +60,10 @@ app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/order', orderRoutes);
 app.use('/api/v1/userProgress', userCourseProgressRoutes);
 app.use('/api/v1/payment', paymentRoutes);
+app.use('/api/v1/translation', translationRoutes);
+app.use('/api/v1/marketplace', marketplaceRoutes);
+app.use('/api/v1/categories', categoriesRoutes);
+app.use('/api/v1/settings', settingRoutes);
 app.use('/api/v1', miscRoutes);
 app.all('*', (_req, res) => {
   res.status(404).send('OOPS!!  404 page not found ');

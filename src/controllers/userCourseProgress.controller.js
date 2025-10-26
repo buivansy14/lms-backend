@@ -80,7 +80,6 @@ export const updateLectureProgress = asyncHandler(async (req, res, next) => {
         lectureProgressPreIndex
       ].completed = true;
     }
-    console.log({ userCourseProgress });
 
     await userCourseProgress.save();
 

@@ -23,7 +23,10 @@ const orderSchema = new mongoose.Schema(
     courseId: {
       type: Schema.Types.ObjectId,
       ref: 'Course',
-      required: true,
+    },
+    marketplaceId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Marketplace',
     },
   },
   { timestamps: true }
