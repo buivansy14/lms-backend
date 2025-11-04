@@ -8,6 +8,7 @@ import {
   updateMarketplace,
   getMarketplaceDetailForUser,
   getMarketplacePublicDetail,
+  getMarketplaceUsers,
 } from '../controllers/marketplace.controllers.js';
 import {
   authorizedRoles,
@@ -31,5 +32,9 @@ router
   .get(isLoggedIn, authorizedRoles('ADMIN'), getMarketplaceById)
   .put(isLoggedIn, authorizedRoles('ADMIN'), updateMarketplace)
   .delete(isLoggedIn, authorizedRoles('ADMIN'), deleteMarketplace);
+
+router
+  .route('/:id/users')
+  .get(isLoggedIn, authorizedRoles('ADMIN'), getMarketplaceUsers);
 
 export default router;

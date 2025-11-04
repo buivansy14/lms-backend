@@ -20,7 +20,7 @@ import settingRoutes from './src/routes/setting.routes.js';
 const allowedOrigins = [
   'https://techonline.edu.vn',
   'https://www.techonline.edu.vn',
-  // 'http://localhost:5173',
+  'http://localhost:5173',
 ];
 
 config();

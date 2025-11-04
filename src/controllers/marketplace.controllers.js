@@ -3,6 +3,7 @@ import AppError from '../../utils/error.util.js';
 import asyncHandler from '../middlewares/asyncHAndler.middleware.js';
 import Marketplace from '../models/marketplace.model.js';
 import Order from '../models/order.model.js';
+import User from '../models/usermodel.js';
 
 /**
  * @desc Get all marketplace items (with optional filters)
@@ -73,7 +74,7 @@ export const getMarketplaceDetailForUser = asyncHandler(
         { new: true }
       )
         .select(
-          'name tagline description price image images tags categoryId demoUrl size typeFile views downloadUrl createdAt updatedAt installationGuide'
+          'name tagline description price downloads image images tags categoryId demoUrl size typeFile views downloadUrl createdAt updatedAt installationGuide'
         ) // chỉ các trường public
         .populate('categoryId', 'name description')
         .lean();
@@ -125,7 +126,7 @@ export const getMarketplacePublicDetail = asyncHandler(
         { new: true }
       )
         .select(
-          'name tagline description price image images tags categoryId demoUrl size typeFile views createdAt updatedAt installationGuide'
+          'name tagline description price downloads image images tags categoryId demoUrl size typeFile views createdAt updatedAt installationGuide'
         ) // chỉ các trường public
         .populate('categoryId', 'name description')
         .lean();
@@ -267,4 +268,42 @@ export const updateStatus = asyncHandler(async (req, res, next) => {
   } catch (error) {
     next(new AppError(error.message, 500));
   }
+});
+
+export const getMarketplaceUsers = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // 1️⃣ Kiểm tra Marketplace tồn tại
+  const marketplace = await Marketplace.findById(id);
+  if (!marketplace) {
+    return res.status(404).json({
+      success: false,
+      message: 'Không tìm thấy Marketplace',
+    });
+  }
+
+  // 2️⃣ Lấy danh sách user đã mua tool này
+  const orders = await Order.find({ marketplaceId: req.params.id })
+    .populate('userId')
+    .populate('marketplaceId');
+
+  const purchasedUsers = orders.map((o) => o.userId);
+
+  // 3️⃣ Lấy danh sách tất cả user
+  const allUsers = await User.find({}, 'name email');
+
+  // 4️⃣ Lọc ra những user chưa mua
+  const purchasedIds = purchasedUsers.map((u) => u._id.toString());
+  const availableUsers = allUsers.filter(
+    (u) => !purchasedIds.includes(u._id.toString())
+  );
+
+  // 5️⃣ Trả về kết quả
+  res.status(200).json({
+    success: true,
+    data: {
+      purchasedUsers,
+      availableUsers,
+    },
+  });
 });
