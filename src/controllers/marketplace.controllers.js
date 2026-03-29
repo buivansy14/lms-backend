@@ -25,7 +25,7 @@ export const getAllMarketplace = asyncHandler(async (req, res, next) => {
 
     const tools = await Marketplace.find(filter)
       .select(
-        'name tagline size tags image price downloads categoryId authorId isFeatured createdAt'
+        'name tagline size tags image price downloads categoryId authorId isFeatured createdAt',
       )
       .populate('categoryId', 'name')
       .populate('authorId', 'name email')
@@ -71,10 +71,10 @@ export const getMarketplaceDetailForUser = asyncHandler(
       const item = await Marketplace.findByIdAndUpdate(
         { _id: id, status: 'published' }, // điều kiện
         { $inc: { views: 1 } }, // cập nhật
-        { new: true }
+        { new: true },
       )
         .select(
-          'name tagline description price downloads image images tags categoryId demoUrl size typeFile views downloadUrl createdAt updatedAt installationGuide'
+          'name tagline description price downloads image images tags categoryId demoUrl size typeFile views downloadUrl createdAt updatedAt installationGuide',
         ) // chỉ các trường public
         .populate('categoryId', 'name description')
         .lean();
@@ -106,14 +106,14 @@ export const getMarketplaceDetailForUser = asyncHandler(
           isPaid,
           downloadUrl: getGoogleDriveDownloadLink(
             downloadUrl || '',
-            item.typeFile
+            item.typeFile,
           ),
         },
       });
     } catch (error) {
       next(new AppError(error.message, 500));
     }
-  }
+  },
 );
 
 export const getMarketplacePublicDetail = asyncHandler(
@@ -123,10 +123,10 @@ export const getMarketplacePublicDetail = asyncHandler(
       const item = await Marketplace.findByIdAndUpdate(
         { _id: id, status: 'published' }, // điều kiện
         { $inc: { views: 1 } }, // cập nhật
-        { new: true }
+        { new: true },
       )
         .select(
-          'name tagline description price downloads image images tags categoryId demoUrl size typeFile views createdAt updatedAt installationGuide'
+          'name tagline description price downloads image images tags categoryId demoUrl size typeFile views createdAt updatedAt installationGuide',
         ) // chỉ các trường public
         .populate('categoryId', 'name description')
         .lean();
@@ -145,7 +145,7 @@ export const getMarketplacePublicDetail = asyncHandler(
     } catch (error) {
       next(new AppError(error.message, 500));
     }
-  }
+  },
 );
 
 /**
@@ -172,21 +172,43 @@ export const createMarketplace = asyncHandler(async (req, res, next) => {
     if (!name || !description || !price)
       return next(new AppError('Missing required fields', 400));
 
-    const item = await Marketplace.create({
+    const normalizedTags =
+      typeof tags === 'string'
+        ? tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : Array.isArray(tags)
+          ? tags
+          : [];
+
+    const itemData = {
       name,
       description,
       categoryId,
       price,
-      image,
-      images,
       demoUrl,
-      tags,
+      tags: normalizedTags,
       status,
       tagline,
       size,
       typeFile,
       installationGuide,
-    });
+    };
+
+    if (req.files?.image && req.files.image[0]) {
+      itemData.image = `/uploads/${req.files.image[0].filename}`;
+    } else if (image) {
+      itemData.image = image; // could be existing URL/string
+    }
+
+    if (req.files?.images && req.files.images.length > 0) {
+      itemData.images = req.files.images.map((f) => `/uploads/${f.filename}`);
+    } else if (images && Array.isArray(images)) {
+      itemData.images = images;
+    }
+
+    const item = await Marketplace.create(itemData);
 
     res.status(201).json({
       success: true,
@@ -207,9 +229,58 @@ export const updateMarketplace = asyncHandler(async (req, res, next) => {
 
     const item = await Marketplace.findById(id);
     if (!item) return next(new AppError('Item not found', 404));
-    Object.assign(item, req.body); // ✅ merge toàn bộ field
 
-    const updated = await item.save(); // ✅ chạy validate + hooks
+    // hình ảnh chính
+    if (req.files?.image && req.files.image[0]) {
+      item.image = `/uploads/${req.files.image[0].filename}`;
+    } else if (req.body.image) {
+      item.image = req.body.image;
+    }
+
+    // danh sách ảnh
+    if (req.files?.images && req.files.images.length > 0) {
+      item.images = req.files.images.map((f) => `/uploads/${f.filename}`);
+    } else if (req.body.images) {
+      item.images = Array.isArray(req.body.images)
+        ? req.body.images
+        : req.body.images;
+    }
+
+    // cập nhật các field khác
+    const allowedFields = [
+      'name',
+      'tagline',
+      'description',
+      'price',
+      'categoryId',
+      'demoUrl',
+      'tags',
+      'status',
+      'size',
+      'typeFile',
+      'installationGuide',
+      'downloadUrl',
+      'version',
+      'isFeatured',
+      'isVisible',
+    ];
+
+    allowedFields.forEach((key) => {
+      if (req.body[key] !== undefined) {
+        item[key] = req.body[key];
+      }
+    });
+
+    if (req.body.tags) {
+      item.tags = Array.isArray(req.body.tags)
+        ? req.body.tags
+        : req.body.tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean);
+    }
+
+    const updated = await item.save();
 
     res.status(200).json({
       success: true,
@@ -255,7 +326,7 @@ export const updateStatus = asyncHandler(async (req, res, next) => {
     const item = await Marketplace.findByIdAndUpdate(
       id,
       { status },
-      { new: true }
+      { new: true },
     );
 
     if (!item) return next(new AppError('Item not found', 404));
@@ -295,7 +366,7 @@ export const getMarketplaceUsers = asyncHandler(async (req, res) => {
   // 4️⃣ Lọc ra những user chưa mua
   const purchasedIds = purchasedUsers.map((u) => u._id.toString());
   const availableUsers = allUsers.filter(
-    (u) => !purchasedIds.includes(u._id.toString())
+    (u) => !purchasedIds.includes(u._id.toString()),
   );
 
   // 5️⃣ Trả về kết quả

@@ -46,7 +46,12 @@ router.route('/user').get(isLoggedIn, getAllCourseUser);
  */
 router
   .route('/:id')
-  .put(isLoggedIn, authorizedRoles('ADMIN'), updateCourse)
+  .put(
+    isLoggedIn,
+    authorizedRoles('ADMIN'),
+    upload.single('thumbnail'),
+    updateCourse
+  )
   .delete(isLoggedIn, authorizedRoles('ADMIN'), removeCourse)
   .post(
     isLoggedIn,

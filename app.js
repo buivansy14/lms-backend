@@ -20,7 +20,6 @@ import settingRoutes from './src/routes/setting.routes.js';
 const allowedOrigins = [
   'https://techonline.edu.vn',
   'https://www.techonline.edu.vn',
-  'http://localhost:5173',
 ];
 
 config();
@@ -43,10 +42,12 @@ app.use(
     preflightContinue: false,
     optionsSuccessStatus: 204,
     credentials: true,
-  })
+  }),
 );
 
 app.use(cookieParser());
+
+app.use('/uploads', express.static('uploads'));
 
 app.use(morgan('dev'));
 

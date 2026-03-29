@@ -14,13 +14,22 @@ import {
   authorizedRoles,
   isLoggedIn,
 } from '../middlewares/auth.middlewares.js';
+import upload from '../middlewares/multer.middleware.js';
 
 const router = Router();
 
 router
   .route('/')
   .get(getAllMarketplace)
-  .post(isLoggedIn, authorizedRoles('ADMIN'), createMarketplace);
+  .post(
+    isLoggedIn,
+    authorizedRoles('ADMIN'),
+    upload.fields([
+      { name: 'image', maxCount: 1 },
+      { name: 'images', maxCount: 6 },
+    ]),
+    createMarketplace
+  );
 
 router.route('/detail/:id').get(getMarketplacePublicDetail);
 router
@@ -30,7 +39,15 @@ router
 router
   .route('/:id')
   .get(isLoggedIn, authorizedRoles('ADMIN'), getMarketplaceById)
-  .put(isLoggedIn, authorizedRoles('ADMIN'), updateMarketplace)
+  .put(
+    isLoggedIn,
+    authorizedRoles('ADMIN'),
+    upload.fields([
+      { name: 'image', maxCount: 1 },
+      { name: 'images', maxCount: 6 },
+    ]),
+    updateMarketplace
+  )
   .delete(isLoggedIn, authorizedRoles('ADMIN'), deleteMarketplace);
 
 router

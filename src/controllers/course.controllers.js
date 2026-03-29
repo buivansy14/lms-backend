@@ -1,6 +1,3 @@
-import cloudinary from 'cloudinary';
-import fs from 'fs/promises';
-
 import asyncHandler from '../middlewares/asyncHAndler.middleware.js';
 import Course from '../models/course.model.js';
 import AppError from '../../utils/error.util.js';
@@ -226,7 +223,7 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
     }
 
     const lecture = course.lectures.find(
-      (lec) => lec._id.toString() === lectureId
+      (lec) => lec._id.toString() === lectureId,
     );
     if (!lecture) {
       return res.status(404).json({
@@ -244,7 +241,7 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
     }
 
     const lectureProgress = progress.lecturesProgress.find(
-      (lec) => lec.lectureId.toString() === lectureId
+      (lec) => lec.lectureId.toString() === lectureId,
     );
     if (lectureProgress?.locked) {
       return res.status(403).json({
@@ -257,7 +254,7 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
       .sort((a, b) => a.orderDisplay - b.orderDisplay) // Sắp xếp lectures theo orderDisplay
       .map((lec, index) => {
         const lectureProgress = progress.lecturesProgress.find(
-          (item) => item.lectureId.toString() === lec._id.toString()
+          (item) => item.lectureId.toString() === lec._id.toString(),
         );
 
         return {
@@ -271,7 +268,7 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
       });
 
     const completedLectures = progress.lecturesProgress.filter(
-      (lec) => lec.completed
+      (lec) => lec.completed,
     ).length;
     const totalLectures = course.lectures.length;
 
@@ -321,30 +318,20 @@ export const createCourse = asyncHandler(async (req, res, next) => {
 
   if (!course) {
     return next(
-      new AppError('Course could not created please try again  ', 500)
+      new AppError('Course could not created please try again  ', 500),
     );
   }
   if (req.file) {
-    try {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: 'lms',
-      });
-      if (result) {
-        course.thumbnail.public_id = result.public_id;
-        course.thumbnail.secure_url = result.secure_url;
-      }
-      fs.rm(`uploads/${req.file.filename}`);
-    } catch (error) {
-      return next(new AppError(error.message, 500));
-    }
+    course.thumbnail.public_id = req.file.filename;
+    course.thumbnail.secure_url = `/uploads/${req.file.filename}`;
     await course.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'Course created sucesssfully ',
-      course,
-    });
   }
+
+  res.status(200).json({
+    success: true,
+    message: 'Course created sucesssfully ',
+    course,
+  });
 });
 /**
  * @UPDATE_COURSE_BY_ID
@@ -354,18 +341,25 @@ export const updateCourse = asyncHandler(async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const course = await Course.findByIdAndUpdate(
-      id,
-      {
-        $set: req.body,
-      },
-      {
-        runValidators: true,
-      }
-    );
+    const course = await Course.findById(id);
     if (!course) {
       return next(new AppError('Course with given id does not exist', 500));
     }
+
+    // Update other fields
+    Object.keys(req.body).forEach((key) => {
+      if (req.body[key] !== undefined) {
+        course[key] = req.body[key];
+      }
+    });
+
+    // Handle thumbnail update
+    if (req.file) {
+      course.thumbnail.public_id = req.file.filename;
+      course.thumbnail.secure_url = `/uploads/${req.file.filename}`;
+    }
+
+    await course.save();
   } catch (error) {
     return next(new AppError(error.message, 500));
   }
@@ -459,7 +453,7 @@ export const addLectureToCourseById = asyncHandler(async (req, res, next) => {
     }
   } else {
     return next(
-      new AppError('Either video file or video link is required', 400)
+      new AppError('Either video file or video link is required', 400),
     );
   }
 
@@ -494,7 +488,7 @@ export const removeLecture = asyncHandler(async (req, res, next) => {
 
     // Find the index of the lecture in the array
     const lectureIndex = course.lectures.findIndex(
-      (lecture) => lecture._id.toString() === lectureId
+      (lecture) => lecture._id.toString() === lectureId,
     );
 
     if (lectureIndex === -1) {
@@ -505,7 +499,7 @@ export const removeLecture = asyncHandler(async (req, res, next) => {
       course.lectures[lectureIndex].lecture.public_id,
       {
         resource_type: 'video',
-      }
+      },
     );
     // Remove the lecture from the array
     course.lectures.splice(lectureIndex, 1);
@@ -536,7 +530,7 @@ const syncLectureWithProgress = async (courseId, lectureId) => {
       }
 
       const lectureExists = progress.lecturesProgress.some(
-        (lecture) => lecture?.lectureId?.toString() === lectureId.toString()
+        (lecture) => lecture?.lectureId?.toString() === lectureId.toString(),
       );
 
       if (!lectureExists) {
@@ -626,11 +620,11 @@ export const getCoursesWithUsers = asyncHandler(async (req, res, next) => {
 
     result.forEach((course) => {
       const registeredUsersIds = course.users.map((user) =>
-        user.userId.toString()
+        user.userId.toString(),
       );
 
       const unregisteredUsers = allUsers.filter(
-        (user) => !registeredUsersIds.includes(user._id.toString())
+        (user) => !registeredUsersIds.includes(user._id.toString()),
       );
 
       course.unregisteredUsers = unregisteredUsers;
@@ -672,7 +666,7 @@ export const getSecureVideo = asyncHandler(async (req, res, next) => {
     });
   } catch (error) {
     return next(
-      new AppError('Error generating video URL: ' + error.message, 500)
+      new AppError('Error generating video URL: ' + error.message, 500),
     );
   }
 });
@@ -682,7 +676,7 @@ export const getInfoLectures = asyncHandler(async (req, res, next) => {
     const courseId = req.params.courseId;
     const course = await Course.findById(
       courseId,
-      'lectures.title lectures.description lectures.orderDisplay price oldPrice'
+      'title description category thumbnail createdBy price oldPrice lectures.title lectures.description lectures.orderDisplay',
     );
 
     if (!course) {
@@ -721,7 +715,7 @@ export const updateLesson = asyncHandler(async (req, res, next) => {
       return res.status(404).json({ message: 'Khóa học không tồn tại' });
     }
     const lessonIndex = course.lectures.findIndex(
-      (lesson) => lesson._id.toString() === lectureId
+      (lesson) => lesson._id.toString() === lectureId,
     );
 
     if (lessonIndex === -1) {
