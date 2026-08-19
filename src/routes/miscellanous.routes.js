@@ -1,16 +1,30 @@
-
 import { Router } from 'express';
 
-import { contactUs, userStats } from '../controllers/miscellaneous.controller.js';
+import {
+  contactUs,
+  getContactMessages,
+  userStats,
+} from '../controllers/miscellaneous.controller.js';
 import { authorizedRoles, isLoggedIn } from '../middlewares/auth.middlewares.js';
 
 const router = Router();
+
 /**
  * @route POST /contact
  * @description Handles the contact form submission.
  * @access Public
  */
 router.route('/contact').post(contactUs);
+
+/**
+ * @route GET /admin/contacts
+ * @description Lấy danh sách tin nhắn liên hệ.
+ * @access Admin only
+ */
+router
+  .route('/admin/contacts')
+  .get(isLoggedIn, authorizedRoles('ADMIN'), getContactMessages);
+
 /**
  * @route GET /admin/stats/users
  * @description Fetches user statistics for admin.
