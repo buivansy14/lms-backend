@@ -17,12 +17,22 @@ import marketplaceRoutes from './src/routes/marketplace.routes.js';
 import categoriesRoutes from './src/routes/category.routes.js';
 import settingRoutes from './src/routes/setting.routes.js';
 
-const allowedOrigins = [
+config();
+
+const configuredOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const defaultOrigins = [
   'https://techonline.edu.vn',
   'https://www.techonline.edu.vn',
-];
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
-config();
+const allowedOrigins = [...new Set([...defaultOrigins, ...configuredOrigins])];
 
 const app = express();
 
@@ -33,10 +43,10 @@ app.use(express.urlencoded({ limit: '120mb', extended: true }));
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
         return callback(null, true);
       }
-      return callback(new Error('Not allowed by CORS'));
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
